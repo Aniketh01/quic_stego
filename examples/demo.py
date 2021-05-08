@@ -76,6 +76,28 @@ async def logs(request):
     )
 
 
+
+@app.route("/stego")
+async def stego_function(request):
+    ''' Idea 1.
+    1. Prepare the stego string that we would like to send.
+    2. Split the resulting string into two halfs.
+    3. First half of the string is send via HTTP Push.
+    4. Second half is send via normal HTTP request through multiple streams.
+    '''
+
+    ''' Idea 2.
+    1. Prepare the stego string that we would like to send.
+    2. Split the resulting string into two halfs.
+    3. First half of the string is send via HTTP Push. 
+    4. Second half is send via normal HTTP request through specific streams.
+    5. The specific stream would be 
+    '''
+
+    # await request.send_push_promise("Aniketh ANIketh aniketh")
+    # size = min(50000000, 60)
+    # return PlainTextResponse("Z" * size)
+
 @app.route("/{size:int}")
 def padding(request):
     """
