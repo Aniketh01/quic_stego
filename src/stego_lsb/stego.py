@@ -98,13 +98,12 @@ def main():
         print("Saving the information...\n\n"
               "\tOriginal Image: ", opts.image, "\n"
               "\tSecret File:    ",opts.secret, "\n"
-              "\tSecret Image:   quic_stego/examples/htdocs" + str(rand) + ".png")
+              "\tSecret Image:   quic_stego/examples/htdocs/icon.png")
 
-        root_dir = os.path.dirname(os.path.abspath(__file__))
-        print("root_dir" + str(root_dir))
-        config_path = os.path.join(root_dir, "quic_stego/examples/htdocs/secretimage" + str(rand) + ".png")
 
-        img.save(config_path)
+        root_dir = os.path.dirname(os.path.abspath(__file__)).replace("src/stego_lsb", "")
+
+        img.save(str(root_dir) + "examples/htdocs/icon.png")
         exit()
 
     else:
