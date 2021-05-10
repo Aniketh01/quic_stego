@@ -79,9 +79,9 @@ async def logs(request):
 
 @app.route("/secret")
 async def stego_function(request):
-    await request.send_push_promise("/style.css")
-    size = min(50000000, 60)
-    return PlainTextResponse("Z" * size)
+    await request.send_push_promise(STATIC_ROOT + "/style.css")
+    await request.send_push_promise(STATIC_ROOT + "/icon.png")
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.route("/{size:int}")

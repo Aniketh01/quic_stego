@@ -8,7 +8,7 @@ import time
 from collections import deque
 from typing import BinaryIO, Callable, Deque, Dict, List, Optional, Union, cast
 from urllib.parse import urlparse
-
+import shutil
 import wsproto
 import wsproto.events
 from quic_logger import QuicDirectoryLogger
@@ -299,6 +299,7 @@ def process_http_pushes(
                 write_response(
                     http_events=http_events, include=include, output_file=output_file
                 )
+        shutil.copy2(path, output_dir)
 
 
 def write_response(
