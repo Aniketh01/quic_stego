@@ -1532,15 +1532,15 @@ class QuicConnection:
             )
 
         # check frame is allowed
-        # if (
-        #     self._configuration.max_datagram_frame_size is None
-        #     or buf.tell() - start >= self._configuration.max_datagram_frame_size
-        # ):
-        #     raise QuicConnectionError(
-        #         error_code=QuicErrorCode.PROTOCOL_VIOLATION,
-        #         frame_type=frame_type,
-        #         reason_phrase="Unexpected DATAGRAM frame",
-        #     )
+        if (
+            self._configuration.max_datagram_frame_size is None
+            or buf.tell() - start >= self._configuration.max_datagram_frame_size
+        ):
+            raise QuicConnectionError(
+                error_code=QuicErrorCode.PROTOCOL_VIOLATION,
+                frame_type=frame_type,
+                reason_phrase="Unexpected DATAGRAM frame",
+            )
 
         self._events.append(events.DatagramFrameReceived(data=data))
 

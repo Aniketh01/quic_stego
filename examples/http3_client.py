@@ -24,9 +24,6 @@ from aioquic.h3.events import (
     HeadersReceived,
     PushPromiseReceived,
 )
-
-from aioquic.quic.events import QuicEvent, DatagramFrameReceived, StreamDataReceived
-
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.quic.events import QuicEvent
 from aioquic.tls import CipherSuite, SessionTicket
@@ -115,57 +112,6 @@ class WebSocket:
     def websocket_event_received(self, event: wsproto.events.Event) -> None:
         if isinstance(event, wsproto.events.TextMessage):
             self.queue.put_nowait(event.data)
-
-
-class QuicClient(QuicConnectionProtocol):
-    print("This is aniketh called")
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._ack_waiter: Optional[asyncio.Future[None]] = None
-
-    async def quic_datagram_send(self) -> None:
-        print("waiting for this")
-        self._quic.send_datagram_frame(b'quic')
-        waiter = self._loop.create_future()
-        self._ack_waiter = waiter
-        self.transmit()
-
-        return await asyncio.shield(waiter)
-
-    async def quic_stream_send(self) -> None:
-        stream_id = self._quic.get_next_available_stream_id()
-        logger.debug(f"Stream ID: {stream_id}")
-        if stream_id / 8 == 0:
-            # self.reset_stream(stream_id, 0)
-            stream_id = self._quic.get_next_available_stream_id()
-            data = b'quic stream-data send'
-            end_stream = False
-            self._quic.send_stream_data(stream_id, data, end_stream)
-        else:
-            stream_id = self._quic.get_next_available_stream_id()
-            data = b'quic sending garbagge to hide'
-            end_stream = False
-            self._quic.send_stream_data(stream_id, data, end_stream)
-
-        waiter = self._loop.create_future()
-        self._ack_waiter = waiter
-        self.transmit()
-
-        return await asyncio.shield(waiter)
-
-
-    def quic_event_received(self, event: QuicEvent) -> None:
-        if self._ack_waiter is not None:
-            if isinstance(event, DatagramFrameReceived) and event.data == b'quic-ack':
-                waiter = self._ack_waiter
-                self._ack_waiter = None
-                waiter.set_result(None)
-
-            elif isinstance(event, StreamDataReceived):
-                logger.info(event.data)
-                waiter = self._ack_waiter
-                self._ack_waiter = None
-                waiter.set_result(None)
 
 
 class HttpClient(QuicConnectionProtocol):
@@ -402,35 +348,45 @@ async def run(
         port = 443
 
     async with connect(
-            host, port,
-            configuration=configuration,
-            create_protocol=QuicClient,
-            wait_connected=not args.zero_rtt,
+        host,
+        port,
+        configuration=configuration,
+        create_protocol=HttpClient,
+        session_ticket_handler=save_session_ticket,
+        local_port=local_port,
+        wait_connected=not zero_rtt,
     ) as client:
-        client = cast(QuicClient, client)
-        logger.info("sending quic ack")
-        await client.quic_datagram_send()
-        logger.info("recieved quic ack")
-        logger.info("sending quic data in stream")
-        for i in range(5):
-            await client.quic_stream_send()
-        logger.info("recieved quic data in stream")
-        # else:
-        #     # perform request
-        #     coros = [
-        #         perform_http_request(
-        #             client=client,
-        #             url=url,
-        #             data=data,
-        #             include=include,
-        #             output_dir=output_dir,
-        #         )
-        #         for url in urls
-        #     ]
-        #     await asyncio.gather(*coros)
-        #
-        #     # process http pushes
-        #     process_http_pushes(client=client, include=include, output_dir=output_dir)
+        client = cast(HttpClient, client)
+
+        if parsed.scheme == "wss":
+            ws = await client.websocket(urls[0], subprotocols=["chat", "superchat"])
+
+            # send some messages and receive reply
+            for i in range(2):
+                message = "Hello {}, WebSocket!".format(i)
+                print("> " + message)
+                await ws.send(message)
+
+                message = await ws.recv()
+                print("< " + message)
+
+            await ws.close()
+        else:
+            # perform request
+            coros = [
+                perform_http_request(
+                    client=client,
+                    url=url,
+                    data=data,
+                    include=include,
+                    output_dir=output_dir,
+                )
+                for url in urls
+            ]
+            await asyncio.gather(*coros)
+
+            # process http pushes
+            process_http_pushes(client=client, include=include, output_dir=output_dir)
 
 
 if __name__ == "__main__":
@@ -522,7 +478,7 @@ if __name__ == "__main__":
 
     # prepare configuration
     configuration = QuicConfiguration(
-        is_client=True, alpn_protocols=H0_ALPN if args.legacy_http else ['quic']
+        is_client=True, alpn_protocols=H0_ALPN if args.legacy_http else H3_ALPN
     )
     if args.ca_certs:
         configuration.load_verify_locations(args.ca_certs)
