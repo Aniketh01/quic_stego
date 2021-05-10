@@ -94,9 +94,10 @@ async def stego_function(request):
     5. The specific stream would be 
     '''
 
-    # await request.send_push_promise("Aniketh ANIketh aniketh")
-    # size = min(50000000, 60)
-    # return PlainTextResponse("Z" * size)
+    await request.send_push_promise("Aniketh ANIketh aniketh")
+    # await request.send_data("stegno assign")
+    size = min(50000000, 60)
+    return PlainTextResponse("Z" * size)
 
 @app.route("/{size:int}")
 def padding(request):

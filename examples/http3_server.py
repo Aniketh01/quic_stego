@@ -18,7 +18,7 @@ from aioquic.h3.connection import H3_ALPN, H3Connection
 from aioquic.h3.events import DataReceived, H3Event, HeadersReceived
 from aioquic.h3.exceptions import NoAvailablePushIDError
 from aioquic.quic.configuration import QuicConfiguration
-from aioquic.quic.events import DatagramFrameReceived, ProtocolNegotiated, QuicEvent
+from aioquic.quic.events import DatagramFrameReceived, ProtocolNegotiated, QuicEvent, StreamDataReceived
 from aioquic.tls import SessionTicket
 
 try:
@@ -227,6 +227,7 @@ class HttpServerProtocol(QuicConnectionProtocol):
         super().__init__(*args, **kwargs)
         self._handlers: Dict[int, Handler] = {}
         self._http: Optional[HttpConnection] = None
+        self.quic_client: bool = False
 
     def http_event_received(self, event: H3Event) -> None:
         if isinstance(event, HeadersReceived) and event.stream_id not in self._handlers:
@@ -323,15 +324,29 @@ class HttpServerProtocol(QuicConnectionProtocol):
 
     def quic_event_received(self, event: QuicEvent) -> None:
         if isinstance(event, ProtocolNegotiated):
-            if event.alpn_protocol in H3_ALPN:
+            if event.alpn_protocol.startswith("h3-"):
                 self._http = H3Connection(self._quic)
-            elif event.alpn_protocol in H0_ALPN:
+            elif event.alpn_protocol.startswith("hq-"):
                 self._http = H0Connection(self._quic)
-        elif isinstance(event, DatagramFrameReceived):
-            if event.data == b"quack":
-                self._quic.send_datagram_frame(b"quack-ack")
+            elif event.alpn_protocol.startswith("quic"):
+                self.quic_client = True
 
-        #  pass event to the HTTP layer
+
+        if isinstance(event, DatagramFrameReceived):
+            if event.data == b'quic':
+                self._quic.send_datagram_frame(b'quic-ack')
+
+        if isinstance(event, StreamDataReceived):
+            if self.quic_client is True:
+                print(f"print event {event.data}")
+                data = b'quic stream-data recv'
+                end_stream = False
+                self._quic.send_stream_data(event.stream_id, data, end_stream)
+            else:
+                #TODO: Yet to handle a http_client streamDataReceived event
+                pass
+
+        #  pass event to the HTTP layer
         if self._http is not None:
             for http_event in self._http.handle_event(event):
                 self.http_event_received(http_event)
@@ -431,7 +446,7 @@ if __name__ == "__main__":
         secrets_log_file = None
 
     configuration = QuicConfiguration(
-        alpn_protocols=H3_ALPN + H0_ALPN + ["siduck"],
+        alpn_protocols = ["quic"],
         is_client=False,
         max_datagram_frame_size=65536,
         quic_logger=quic_logger,
