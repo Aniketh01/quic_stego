@@ -97,11 +97,12 @@ def main():
               " information bits \n\tUsed: \t", bits / 3, " pixels\n")
         print("Saving the information...\n\n"
               "\tOriginal Image: ", opts.image, "\n"
-              "\tSecret File:    ",opts.secret, "\n"
+              "\tSecret File:    ", opts.secret, "\n"
               "\tSecret Image:   quic_stego/examples/htdocs/icon.png")
 
-
         root_dir = os.path.dirname(os.path.abspath(__file__)).replace("src/stego_lsb", "")
+        if os.path.exists(str(root_dir) + "examples/htdocs/icon.png"):
+            os.remove(str(root_dir) + "examples/htdocs/icon.png")
 
         img.save(str(root_dir) + "examples/htdocs/icon.png")
         exit()
