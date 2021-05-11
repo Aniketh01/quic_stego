@@ -55,7 +55,7 @@ else
     echo ""
     echo " --------- STEGO_LSB PART (Extract) ---------"
     echo ""
-    python3 src/stego_lsb/stego.py -E -i result_resources/secret
+    python3 src/stego_lsb/stego.py -E -i result_resources/icon.png
 fi
 
 
