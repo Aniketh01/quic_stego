@@ -37,8 +37,8 @@ specification drafts and is regularly tested for interoperability against other
 To learn more about ``aioquic`` please `read the documentation`_.
 
 
-`Stegnographic tool implementation execution`_.
------------------------------------------------
+Stegnographic tool implementation execution.
+----------------------------------------------
 
 There are specifically two modules that are introduced as a part of this two:
 
@@ -51,13 +51,15 @@ To actually run the whole pipeline, we have introduced a bash script that encode
 To invoke the client:
 
 .. code-block:: console
+
    $ sh quic_stego.sh -E 0
+
 
 To invoke the server:
 
 .. code-block:: console
-   $ bash quic_stego.sh -i resources/template.png -s resources/file.txt
 
+   $ bash quic_stego.sh -i resources/template.png -s resources/file.txt
 
 
 You could invoke each part indivually to test different properties offered by them:
@@ -67,9 +69,13 @@ To invoke the network modules client and server, you could do:
 The client:
 
 .. code-block:: console
+
     $ python examples/http3_client.py --ca-certs tests/pycacert.pem https://localhost:4433/secret --output-dir=result_resources/
 
+The server:
+
 .. code-block:: console
+
    $ python examples/http3_server.py --certificate tests/ssl_cert.pem --private-key tests/ssl_key.pem -v
 
 Inorder to invoke the stegnographic module:
@@ -77,13 +83,13 @@ Inorder to invoke the stegnographic module:
 To encrypt the text in the file:
 
 .. code-block:: console
+
    $ python3 Stego.py -i resources/template.png -s resources/file.txt
 
 To decrypt the image with the secret text attached:
 
 .. code-block:: console
+
    $ python3 Stego.py -E -i result_resources/secretimage.png
-
-
 
 
