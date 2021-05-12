@@ -1,4 +1,4 @@
-aioquic
+aioquic_stego
 =======
 
 |rtd| |pypi-v| |pypi-pyversions| |pypi-l| |tests| |codecov| |black|
@@ -23,6 +23,9 @@ aioquic
 
 .. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/python/black
+
+
+A stegnographic tool PoC based on QUIC and HTTP/3.
 
 What is ``aioquic``?
 --------------------
