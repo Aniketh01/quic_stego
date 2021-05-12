@@ -36,96 +36,54 @@ specification drafts and is regularly tested for interoperability against other
 
 To learn more about ``aioquic`` please `read the documentation`_.
 
-Why should I use ``aioquic``?
------------------------------
 
-``aioquic`` has been designed to be embedded into Python client and server
-libraries wishing to support QUIC and / or HTTP/3. The goal is to provide a
-common codebase for Python libraries in the hope of avoiding duplicated effort.
+`Stegnographic tool implementation execution`_.
+-----------------------------------------------
 
-Both the QUIC and the HTTP/3 APIs follow the "bring your own I/O" pattern,
-leaving actual I/O operations to the API user. This approach has a number of
-advantages including making the code testable and allowing integration with
-different concurrency models.
+There are specifically two modules that are introduced as a part of this two:
 
-Features
---------
+1. The Network module based on HTTP/3 and QUIC.
+2. The stegnographic module that hides a secret string into an image.
 
-- QUIC stack conforming with draft-28
-- HTTP/3 stack conforming with draft-28
-- minimal TLS 1.3 implementation
-- IPv4 and IPv6 support
-- connection migration and NAT rebinding
-- logging TLS traffic secrets
-- logging QUIC events in QLOG format
-- HTTP/3 server push support
 
-Requirements
-------------
+To actually run the whole pipeline, we have introduced a bash script that encoded the string into the image and send the image to the client and does the communication.
 
-``aioquic`` requires Python 3.6 or better, and the OpenSSL development headers.
-
-Linux
-.....
-
-On Debian/Ubuntu run:
+To invoke the client:
 
 .. code-block:: console
+   $ sh quic_stego.sh -E 0
 
-   $ sudo apt install libssl-dev python3-dev
-
-On Alpine Linux you will also need the following:
-
-.. code-block:: console
-
-   $ sudo apt install bsd-compat-headers libffi-dev
-
-OS X
-....
-
-On OS X run:
+To invoke the server:
 
 .. code-block:: console
+   $ bash quic_stego.sh -i resources/template.png -s resources/file.txt
 
-   $ brew install openssl
 
-You will need to set some environment variables to link against OpenSSL:
 
-.. code-block:: console
+You could invoke each part indivually to test different properties offered by them:
 
-   $ export CFLAGS=-I/usr/local/opt/openssl/include
-   $ export LDFLAGS=-L/usr/local/opt/openssl/lib
+To invoke the network modules client and server, you could do:
 
-Windows
-.......
-
-On Windows the easiest way to install OpenSSL is to use `Chocolatey`_.
+The client:
 
 .. code-block:: console
-
-   > choco install openssl
-
-You will need to set some environment variables to link against OpenSSL:
+    $ python examples/http3_client.py --ca-certs tests/pycacert.pem https://localhost:4433/secret --output-dir=result_resources/
 
 .. code-block:: console
+   $ python examples/http3_server.py --certificate tests/ssl_cert.pem --private-key tests/ssl_key.pem -v
 
-  > $Env:INCLUDE = "C:\Progra~1\OpenSSL-Win64\include"
-  > $Env:LIB = "C:\Progra~1\OpenSSL-Win64\lib"
+Inorder to invoke the stegnographic module:
 
-Running the examples
---------------------
+To encrypt the text in the file:
 
-`aioquic` comes with a number of examples illustrating various QUIC usecases.
+.. code-block:: console
+   $ python3 Stego.py -i resources/template.png -s resources/file.txt
 
-You can browse these examples here: https://github.com/aiortc/aioquic/tree/main/examples
+To decrypt the image with the secret text attached:
 
-License
--------
+.. code-block:: console
+   $ python3 Stego.py -E -i result_resources/secretimage.png
 
-``aioquic`` is released under the `BSD license`_.
 
-.. _read the documentation: https://aioquic.readthedocs.io/en/latest/
-.. _QUIC implementations: https://github.com/quicwg/base-drafts/wiki/Implementations
-.. _cryptography: https://cryptography.io/
-.. _Chocolatey: https://chocolatey.org/
-.. _BSD license: https://aioquic.readthedocs.io/en/latest/license.html
+
+
