@@ -7,7 +7,7 @@ key="$1"
 
 case $key in
     -E|--Extract)
-    EXTRACT="$2"
+    EXTRACT=true
     shift # past argument
     shift # past value
     ;;
@@ -29,21 +29,8 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-if [[ -z "${EXTRACT}" ]]
+if [[ ${EXTRACT} ]]
 then
-    echo ""
-    echo "***************************************************************************"
-    echo "We are going to hide the ${SECRET} in ${IMAGE} and send it by quic protocol"
-    echo "***************************************************************************"
-    echo ""
-    echo " --------- STEGO_LSB PART (Hide) ---------"
-    echo ""
-    python3 src/stego_lsb/stego.py -i "${IMAGE}" -s "${SECRET}"
-    echo ""
-    echo " --------- QUIC_PROTOCOL PART (Send) ---------"
-    echo ""
-    python3 examples/http3_server.py --certificate tests/ssl_cert.pem --private-key tests/ssl_key.pem -v
-else
     echo ""
     echo "***************************************************************************"
     echo "We are going to download and extract the ${IMAGE}'s secret"
@@ -56,6 +43,19 @@ else
     echo " --------- STEGO_LSB PART (Extract) ---------"
     echo ""
     python3 src/stego_lsb/stego.py -E -i result_resources/icon.png
+else
+    echo ""
+    echo "***************************************************************************"
+    echo "We are going to hide the ${SECRET} in ${IMAGE} and send it by quic protocol"
+    echo "***************************************************************************"
+    echo ""
+    echo " --------- STEGO_LSB PART (Hide) ---------"
+    echo ""
+    python3 src/stego_lsb/stego.py -i "${IMAGE}" -s "${SECRET}"
+    echo ""
+    echo " --------- QUIC_PROTOCOL PART (Send) ---------"
+    echo ""
+    python3 examples/http3_server.py --certificate tests/ssl_cert.pem --private-key tests/ssl_key.pem -v
 fi
 
 

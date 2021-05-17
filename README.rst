@@ -1,4 +1,4 @@
-aioquic_stego
+quic_stego
 =======
 
 |rtd| |pypi-v| |pypi-pyversions| |pypi-l| |tests| |codecov| |black|
@@ -25,9 +25,14 @@ aioquic_stego
     :target: https://github.com/python/black
 
 
-A stegnographic tool PoC based on QUIC and HTTP/3.
+A stegnographic tool PoC based on QUIC and HTTP/3. This tool hide a message into a image and send it by QUIC protocol.
+The tool has two parts:
 
-What is ``aioquic``?
+* Stego part: where the tool hide the message into the image
+
+* QUIC part: send that secret image
+
+What is aioquic?
 --------------------
 
 ``aioquic`` is a library for the QUIC network protocol in Python. It features
@@ -45,27 +50,27 @@ Stegnographic tool implementation execution.
 
 There are specifically two modules that are introduced as a part of this two:
 
-1. The Network module based on HTTP/3 and QUIC.
-2. The stegnographic module that hides a secret string into an image.
+1. The stegnographic module that hides a secret string into an image.
+2. The Network module based on HTTP/3 and QUIC.
 
 
 To actually run the whole pipeline, we have introduced a bash script that encoded the string into the image and send the image to the client and does the communication.
 
-To invoke the client:
 
-.. code-block:: console
-
-   $ sh quic_stego.sh -E 0
-
-
-To invoke the server:
+To hide the file.txt into template.png and invoke the server to upload the secret image (or icon.png):
 
 .. code-block:: console
 
    $ bash quic_stego.sh -i resources/template.png -s resources/file.txt
 
+To invoke the client and download the icon.png. Extract the secret message from icon.png. The result would be in the path result_resources/secretXX.txt:
 
-You could invoke each part indivually to test different properties offered by them:
+.. code-block:: console
+
+   $ sh quic_stego.sh -E
+
+
+You could invoke each part individually to test different properties offered by them:
 
 To invoke the network modules client and server, you could do:
 
